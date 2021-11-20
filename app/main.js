@@ -5,22 +5,22 @@ const fs = require("fs");
 const cors = require("cors");
 const { ArgumentParser } = require('argparse');
 
-const parser = new ArgumentParser({
-  description: 'Argparse example'
-});
- 
-parser.add_argument('-n', { help: 'number of frame' });
- 
-args = parser.parse_args();
 
-// process.argv.forEach(function (val, index, array) {
-//   console.log(index + ': ' + val);
-// });
 async function main() {
   // mkdir
   await fs.mkdir(path.resolve("screenshots"), () => {
     console.log("create screenshot");
   });
+
+  const parser = new ArgumentParser({
+    description: 'Argparse example'
+  });
+  
+  parser.add_argument('-n', { help: 'number of frame' });
+  
+  args = parser.parse_args();
+  const parameters = {};
+  parameters.total_frame_number = args.n;
 
   // create express
   const app = express();
@@ -29,12 +29,9 @@ async function main() {
   app.use(cors());
   app.use(express.json({ limit: "25mb" }));
 
-  app.use("/scene", express.static("./scene"));
-  // app.use("/scene", express.static(path.relative(__dirname, "scene")));
-
-  app.get("/frame", (req, res) => {
-    var tryFetch = { frame: args.n };
-    res.json(tryFetch);
+  app.use("/scene", express.static("./build/scene"));
+  app.get("/parameters", (req, res) => {
+    res.json(parameters);
   });
 
   app.post("/", async (req, res) => {

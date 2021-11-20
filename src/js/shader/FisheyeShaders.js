@@ -1,4 +1,4 @@
-const FisheyeShader = {
+const FisheyeEquidistantShader = {
 
 	uniforms: {
     "tDiffuse": 		{ type: "t", value: null },
@@ -48,4 +48,4 @@ const FisheyeShader = {
 		}`
 };
 
-export { FisheyeShader };
+export { FisheyeEquidistantShader };

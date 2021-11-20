@@ -3,7 +3,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 
-import { FisheyeShader } from './Fisheye_kb.js'
+import {FisheyeEquidistantShader}from './shader/FisheyeShaders'
 
 const IS_PUPPETEER = navigator.userAgent.indexOf('puppeteer') !== -1;
 
@@ -15,15 +15,19 @@ let total_frame = 50;
 
 document.addEventListener('DOMContentLoaded', async function () {
   if(IS_PUPPETEER){
-    const fromServer = await fetch('http://localhost:3000/frame', {method:'GET'})
+    const parameters = await fetch('http://localhost:3000/parameters', {method:'GET'})
     .then(function(response) {
       return response.json()
     })
     .then(function(responseJson) {
-      return responseJson.frame
+      return responseJson;
     })
-
-    total_frame = fromServer;
+    total_frame = parameters.total_frame_number;
+  }
+  else{
+    fetch("config/setting.json")
+    .then(response => response.json())
+    .then(json => console.log(json));
   }
 
   init();
@@ -38,27 +42,7 @@ function init() {
   const WIDTH = ( window.innerWidth / AMOUNT ) * window.devicePixelRatio;
   const HEIGHT = ( window.innerHeight / AMOUNT ) * window.devicePixelRatio;
 
-  const cameras = [];
-
-  for ( let y = 0; y < AMOUNT; y ++ ) {
-
-    for ( let x = 0; x < AMOUNT; x ++ ) {
-
-      const subcamera = new THREE.PerspectiveCamera( 40, ASPECT_RATIO, 0.1, 10 );
-      subcamera.viewport = new THREE.Vector4( Math.floor( x * WIDTH ), Math.floor( y * HEIGHT ), Math.ceil( WIDTH ), Math.ceil( HEIGHT ) );
-      subcamera.position.x = ( x / AMOUNT ) - 0.5;
-      subcamera.position.y = 0.5 - ( y / AMOUNT );
-      subcamera.position.z = 1.5;
-      subcamera.position.multiplyScalar( 2 );
-      subcamera.lookAt( 0, 0, 0 );
-      subcamera.updateMatrixWorld();
-      cameras.push( subcamera );
-
-    }
-
-  }
-
-  camera = new THREE.ArrayCamera( cameras );
+  camera = new THREE.PerspectiveCamera( 40, ASPECT_RATIO, 0.1, 10 );
   camera.position.z = 3;
 
   scene = new THREE.Scene();
@@ -95,7 +79,7 @@ function init() {
 
   composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
-  let effect1 = new ShaderPass(FisheyeShader);
+  let effect1 = new ShaderPass(FisheyeEquidistantShader);
   effect1.uniforms['h_fov'].value = 100;
   composer.addPass(effect1);
 
@@ -112,25 +96,6 @@ function onWindowResize() {
   camera.aspect = ASPECT_RATIO;
   camera.updateProjectionMatrix();
 
-  for ( let y = 0; y < AMOUNT; y ++ ) {
-
-    for ( let x = 0; x < AMOUNT; x ++ ) {
-
-      const subcamera = camera.cameras[ AMOUNT * y + x ];
-
-      subcamera.viewport.set(
-        Math.floor( x * WIDTH ),
-        Math.floor( y * HEIGHT ),
-        Math.ceil( WIDTH ),
-        Math.ceil( HEIGHT ) );
-
-      subcamera.aspect = ASPECT_RATIO;
-      subcamera.updateProjectionMatrix();
-
-    }
-
-  }
-
   renderer.setSize( window.innerWidth, window.innerHeight );
 
 }
@@ -143,11 +108,11 @@ async function animate() {
   mesh.rotation.z += 0.01;
 
   if(IS_PUPPETEER){
-    await composer.render();
 
     // await renderer.render( scene, camera );
     if(count < total_frame){
-      saveFrame();
+      await composer.render();
+      await saveFrame();
       count += 1;
     }
     else{
@@ -173,5 +138,5 @@ async function saveFrame() {
     headers: {
       'Content-Type': 'application/json'
     }
-  }).catch(err => {})
+  }).catch(err => {console.log(err)})
 }
