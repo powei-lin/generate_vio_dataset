@@ -1,5 +1,6 @@
 {
   "board": {
+    "file_type": "svg",
     "file_path": "asset/d_board_800.svg",
     "rotateXYZ_deg": [180.0, 0.0, 0.0],
     "translateXYZ_mm": [-800.0, 0.0, 0.0]
