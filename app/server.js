@@ -6,8 +6,8 @@ const params = {
     root: "build/scene",
     ignore: 'src,screenshots', // comma-separated string for paths to ignore
     // file: "index.html", // When set, serve this file (server root relative) for every 404 (useful for single-page applications)
-    wait: 5000, // Waits for all changes, before reloading. Defaults to 0 sec.
-    mount: [["/config", "./config"]], // Mount a directory to a route.
+    wait: 3000, // Waits for all changes, before reloading. Defaults to 0 sec.
+    mount: [["/config", "./config"], ["/asset", "./asset"]], // Mount a directory to a route.
     
 };
 
